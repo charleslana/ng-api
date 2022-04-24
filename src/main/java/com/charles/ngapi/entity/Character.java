@@ -18,8 +18,8 @@ public class Character {
     @SequenceGenerator(name = "character_sequence", sequenceName = "character_sequence", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "character_sequence")
     private Long id;
-    @Column(name = "url_image", length = 100, nullable = false)
-    private String image;
+    @Column(name = "image", nullable = false)
+    private Integer image;
     @Column(name = "name", length = 50, nullable = false)
     private String name;
 }

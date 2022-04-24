@@ -30,6 +30,8 @@ public class AccountCharacter {
     private Long id;
     @Column(name = "level", nullable = false)
     private Integer level;
+    @Column(name = "name", length = 20, unique = true, nullable = false)
+    private String name;
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private AccountCharacterStatusEnum status;
