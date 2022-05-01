@@ -28,7 +28,6 @@ public class AccountCharacterService {
         existsAccountCharacterName(accountCharacter);
         existsAccountCharacter(createAccountCharacterDTO);
         Character character = characterService.existsCharacterId(createAccountCharacterDTO.getCharacterId());
-        character.setId(createAccountCharacterDTO.getCharacterId());
         accountCharacter.setAccount(accountService.getAuthAccount());
         accountCharacter.setLevel(1);
         accountCharacter.setStatus(AccountCharacterStatusEnum.ACTIVE);
