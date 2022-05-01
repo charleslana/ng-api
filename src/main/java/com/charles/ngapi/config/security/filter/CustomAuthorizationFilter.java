@@ -46,15 +46,18 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            try {
-                SecurityContextHolder.getContext().setAuthentication(processMethod(authorizationHeader));
-            } catch (Exception e) {
-                log.warn("Authentication failed for token {}, caused by: {}", authorizationHeader, e.getCause());
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                Map<String, String> error = new HashMap<>();
-                error.put("error_message", e.getMessage());
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                new ObjectMapper().writeValue(response.getOutputStream(), error);
+            if (SecurityContextHolder.getContext() == null) {
+                try {
+                    SecurityContextHolder.getContext().setAuthentication(processMethod(authorizationHeader));
+                } catch (Exception e) {
+                    log.warn("Authentication failed for token {}, caused by: {}", authorizationHeader, e.getCause());
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    Map<String, String> error = new HashMap<>();
+                    error.put("error_message", e.getMessage());
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    new ObjectMapper().writeValue(response.getOutputStream(), error);
+                }
+                return;
             }
         }
         filterChain.doFilter(request, response);

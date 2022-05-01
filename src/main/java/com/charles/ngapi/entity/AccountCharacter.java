@@ -8,6 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter
@@ -15,11 +17,17 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Entity
 @Table(name = "account_character")
-public class AccountCharacter {
+public class AccountCharacter implements Serializable {
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     private Account account;
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "character_id")
+    private Character character;
     @Column(name = "created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -38,4 +46,5 @@ public class AccountCharacter {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
 }

@@ -11,6 +11,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +22,10 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @Entity
 @Table(name = "account")
-public class Account implements UserDetails {
+public class Account implements UserDetails, Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "created_at")
     @CreationTimestamp

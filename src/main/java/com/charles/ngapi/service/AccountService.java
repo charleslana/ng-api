@@ -5,6 +5,7 @@ import com.charles.ngapi.entity.Account;
 import com.charles.ngapi.entity.dto.CreateAccountDTO;
 import com.charles.ngapi.entity.dto.UpdateAccountDTO;
 import com.charles.ngapi.entity.dto.UpdateAccountPasswordDTO;
+import com.charles.ngapi.entity.dto.UserDetailsDTO;
 import com.charles.ngapi.enums.AccountRoleEnum;
 import com.charles.ngapi.enums.AccountStatusEnum;
 import com.charles.ngapi.exceptions.CustomException;
@@ -14,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -48,7 +48,7 @@ public class AccountService implements UserDetailsService {
     }
 
     public Account detail() {
-        return repository.findById(getAuth().getId()).orElseThrow(() -> new CustomException(MessageUtils.ACCOUNT_NOT_FOUND));
+        return repository.findById(getAuthAccount().getId()).orElseThrow(() -> new CustomException(MessageUtils.ACCOUNT_NOT_FOUND));
     }
 
     public Account get(Long id) {
@@ -63,6 +63,11 @@ public class AccountService implements UserDetailsService {
         return repository.findAll();
     }
 
+    public Account getAuthAccount() {
+        String email = SecurityUtils.getAuthEmail();
+        return getAccountByEmail(email);
+    }
+
     public List<GrantedAuthority> getRoles(String email) {
         Account account = getAccountByEmail(email);
         return Collections.singletonList(new SimpleGrantedAuthority(AccountRoleEnum.ADMIN.equals(account.getRole()) ? "ROLE_ADMIN" : "ROLE_USER"));
@@ -72,28 +77,23 @@ public class AccountService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Account account = repository.findByEmailAndStatusNot(email, AccountStatusEnum.INACTIVE).orElseThrow(() -> new CustomException(MessageUtils.ACCOUNT_EMAIL_OR_STATUS_NOT_FOUND));
         List<GrantedAuthority> roles = Collections.singletonList(new SimpleGrantedAuthority(AccountRoleEnum.ADMIN.equals(account.getRole()) ? "ROLE_ADMIN" : "ROLE_USER"));
-        return new User(account.getEmail(), account.getPassword(), roles);
+        return new UserDetailsDTO(roles, account.getPassword(), account.getEmail());
     }
 
     @Transactional
     public void update(UpdateAccountDTO updateAccountDTO) {
         Account account = modelMapper.map(updateAccountDTO, Account.class);
-        Account authAccount = getAuth();
+        Account authAccount = getAuthAccount();
         authAccount.setName(account.getName());
     }
 
     @Transactional
     public void updatePassword(UpdateAccountPasswordDTO updateAccountPasswordDTO) {
         Account account = modelMapper.map(updateAccountPasswordDTO, Account.class);
-        Account authAccount = getAuth();
+        Account authAccount = getAuthAccount();
         if (!encoder.matches(updateAccountPasswordDTO.getCurrentPassword(), authAccount.getPassword())) {
             throw new CustomException(MessageUtils.ACCOUNT_PASSWORD_INCORRECT);
         }
         authAccount.setPassword(encoder.encode(account.getPassword()));
-    }
-
-    private Account getAuth() {
-        String email = SecurityUtils.getAuthEmail();
-        return getAccountByEmail(email);
     }
 }
