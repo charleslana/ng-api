@@ -1,5 +1,6 @@
 package com.charles.ngapi.exceptions;
 
+import com.charles.ngapi.exceptions.dto.FieldErrorDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -10,12 +11,12 @@ import javax.servlet.http.HttpServletRequest;
 @ControllerAdvice
 public class ResourceExceptionHandler {
 
-    @ExceptionHandler(CustomException.class)
-    public ResponseEntity<StandardError> objectNotFound(CustomException e, HttpServletRequest request) {
-        StandardError error = new StandardError();
-        error.setStatus(HttpStatus.NOT_FOUND.value());
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<FieldErrorDTO> errorBusiness(BusinessException e, HttpServletRequest request) {
+        FieldErrorDTO error = new FieldErrorDTO();
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
         error.setTimestamp(System.currentTimeMillis());
         error.setMessage(e.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }

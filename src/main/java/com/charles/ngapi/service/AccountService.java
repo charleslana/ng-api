@@ -8,7 +8,7 @@ import com.charles.ngapi.entity.dto.UpdateAccountPasswordDTO;
 import com.charles.ngapi.entity.dto.UserDetailsDTO;
 import com.charles.ngapi.enums.AccountRoleEnum;
 import com.charles.ngapi.enums.AccountStatusEnum;
-import com.charles.ngapi.exceptions.CustomException;
+import com.charles.ngapi.exceptions.BusinessException;
 import com.charles.ngapi.repository.AccountRepository;
 import com.charles.ngapi.utils.MessageUtils;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,7 @@ public class AccountService implements UserDetailsService {
         Account account = modelMapper.map(createAccountDTO, Account.class);
         Optional<Account> accountOptional = repository.findByEmail(account.getEmail());
         if (accountOptional.isPresent()) {
-            throw new CustomException(MessageUtils.ACCOUNT_EMAIL_EXISTS);
+            throw new BusinessException(MessageUtils.ACCOUNT_EMAIL_EXISTS);
         }
         account.setStatus(AccountStatusEnum.ACTIVE);
         account.setRole(AccountRoleEnum.USER);
@@ -48,15 +48,15 @@ public class AccountService implements UserDetailsService {
     }
 
     public Account detail() {
-        return repository.findById(getAuthAccount().getId()).orElseThrow(() -> new CustomException(MessageUtils.ACCOUNT_NOT_FOUND));
+        return repository.findById(getAuthAccount().getId()).orElseThrow(() -> new BusinessException(MessageUtils.ACCOUNT_NOT_FOUND));
     }
 
     public Account get(Long id) {
-        return repository.findById(id).orElseThrow(() -> new CustomException(MessageUtils.ACCOUNT_NOT_FOUND));
+        return repository.findById(id).orElseThrow(() -> new BusinessException(MessageUtils.ACCOUNT_NOT_FOUND));
     }
 
     public Account getAccountByEmail(String email) {
-        return repository.findByEmail(email).orElseThrow(() -> new CustomException(MessageUtils.ACCOUNT_EMAIL_NOT_FOUND));
+        return repository.findByEmail(email).orElseThrow(() -> new BusinessException(MessageUtils.ACCOUNT_EMAIL_NOT_FOUND));
     }
 
     public List<Account> getAll() {
@@ -75,7 +75,7 @@ public class AccountService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Account account = repository.findByEmailAndStatusNot(email, AccountStatusEnum.INACTIVE).orElseThrow(() -> new CustomException(MessageUtils.ACCOUNT_EMAIL_OR_STATUS_NOT_FOUND));
+        Account account = repository.findByEmailAndStatusNot(email, AccountStatusEnum.INACTIVE).orElseThrow(() -> new BusinessException(MessageUtils.ACCOUNT_EMAIL_OR_STATUS_NOT_FOUND));
         List<GrantedAuthority> roles = Collections.singletonList(new SimpleGrantedAuthority(AccountRoleEnum.ADMIN.equals(account.getRole()) ? "ROLE_ADMIN" : "ROLE_USER"));
         return new UserDetailsDTO(roles, account.getPassword(), account.getEmail());
     }
@@ -92,7 +92,7 @@ public class AccountService implements UserDetailsService {
         Account account = modelMapper.map(updateAccountPasswordDTO, Account.class);
         Account authAccount = getAuthAccount();
         if (!encoder.matches(updateAccountPasswordDTO.getCurrentPassword(), authAccount.getPassword())) {
-            throw new CustomException(MessageUtils.ACCOUNT_PASSWORD_INCORRECT);
+            throw new BusinessException(MessageUtils.ACCOUNT_PASSWORD_INCORRECT);
         }
         authAccount.setPassword(encoder.encode(account.getPassword()));
     }

@@ -1,5 +1,6 @@
 package com.charles.ngapi.repository;
 
+import com.charles.ngapi.entity.Account;
 import com.charles.ngapi.entity.AccountCharacter;
 import com.charles.ngapi.enums.AccountCharacterStatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,6 @@ public interface AccountCharacterRepository extends JpaRepository<AccountCharact
     Optional<AccountCharacter> findByAccountIdAndIdAndStatus(Long accountId, Long id, AccountCharacterStatusEnum status);
 
     Optional<AccountCharacter> findByName(String name);
+
+    Boolean existsAccountCharacterByAccountAndCharacter_Id(Account account, Long character_id);
 }

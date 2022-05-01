@@ -5,7 +5,7 @@ import com.charles.ngapi.entity.AccountCharacter;
 import com.charles.ngapi.entity.Character;
 import com.charles.ngapi.entity.dto.CreateAccountCharacterDTO;
 import com.charles.ngapi.enums.AccountCharacterStatusEnum;
-import com.charles.ngapi.exceptions.CustomException;
+import com.charles.ngapi.exceptions.BusinessException;
 import com.charles.ngapi.repository.AccountCharacterRepository;
 import com.charles.ngapi.utils.MessageUtils;
 import lombok.RequiredArgsConstructor;
@@ -19,19 +19,15 @@ import java.util.Optional;
 public class AccountCharacterService {
 
     private final AccountService accountService;
+    private final CharacterService characterService;
     private final ModelMapper modelMapper;
     private final AccountCharacterRepository repository;
 
-
     public void createCharacter(CreateAccountCharacterDTO createAccountCharacterDTO) {
         AccountCharacter accountCharacter = modelMapper.map(createAccountCharacterDTO, AccountCharacter.class);
-        Optional<AccountCharacter> accountCharacterOptional = repository.findByName(accountCharacter.getName());
-        if (accountCharacterOptional.isPresent()) {
-            throw new CustomException(MessageUtils.ACCOUNT_CHARACTER_NAME_EXISTS);
-        }
-        // TODO: Validate character from id
-        // TODO: Validate character id exists at account
-        Character character = new Character();
+        existsAccountCharacterName(accountCharacter);
+        existsAccountCharacter(createAccountCharacterDTO);
+        Character character = characterService.existsCharacterId(createAccountCharacterDTO.getCharacterId());
         character.setId(createAccountCharacterDTO.getCharacterId());
         accountCharacter.setAccount(accountService.getAuthAccount());
         accountCharacter.setLevel(1);
@@ -60,13 +56,26 @@ public class AccountCharacterService {
         SecurityUtils.setCharacterId(accountCharacter.getId());
     }
 
+    private void existsAccountCharacter(CreateAccountCharacterDTO createAccountCharacterDTO) {
+        if (Boolean.TRUE.equals(repository.existsAccountCharacterByAccountAndCharacter_Id(accountService.getAuthAccount(), createAccountCharacterDTO.getCharacterId()))) {
+            throw new BusinessException(MessageUtils.ACCOUNT_CHARACTER_EXISTS);
+        }
+    }
+
+    private void existsAccountCharacterName(AccountCharacter accountCharacter) {
+        Optional<AccountCharacter> accountCharacterOptional = repository.findByName(accountCharacter.getName());
+        if (accountCharacterOptional.isPresent()) {
+            throw new BusinessException(MessageUtils.ACCOUNT_CHARACTER_NAME_EXISTS);
+        }
+    }
+
     private void existsCharacterId() {
         if (Boolean.FALSE.equals(SecurityUtils.existsCharacterId())) {
-            throw new CustomException(MessageUtils.ACCOUNT_CHARACTER_NOT_FOUND);
+            throw new BusinessException(MessageUtils.ACCOUNT_CHARACTER_NOT_FOUND);
         }
     }
 
     private AccountCharacter getAccountByCharacterId(Long id) {
-        return repository.findByAccountIdAndIdAndStatus(accountService.getAuthAccount().getId(), id, AccountCharacterStatusEnum.ACTIVE).orElseThrow(() -> new CustomException(MessageUtils.ACCOUNT_CHARACTER_NOT_FOUND));
+        return repository.findByAccountIdAndIdAndStatus(accountService.getAuthAccount().getId(), id, AccountCharacterStatusEnum.ACTIVE).orElseThrow(() -> new BusinessException(MessageUtils.ACCOUNT_CHARACTER_NOT_FOUND));
     }
 }
