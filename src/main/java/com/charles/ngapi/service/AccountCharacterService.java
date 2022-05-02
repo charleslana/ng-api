@@ -56,7 +56,7 @@ public class AccountCharacterService {
     }
 
     private void existsAccountCharacter(CreateAccountCharacterDTO createAccountCharacterDTO) {
-        if (Boolean.TRUE.equals(repository.existsAccountCharacterByAccountAndCharacter_Id(accountService.getAuthAccount(), createAccountCharacterDTO.getCharacterId()))) {
+        if (Boolean.TRUE.equals(repository.existsAccountCharacterByAccountAndCharacterId(accountService.getAuthAccount(), createAccountCharacterDTO.getCharacterId()))) {
             throw new BusinessException(MessageUtils.ACCOUNT_CHARACTER_EXISTS);
         }
     }
